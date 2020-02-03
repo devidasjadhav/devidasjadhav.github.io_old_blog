@@ -7,15 +7,15 @@ categories: bcc
 
 This is first post of series intended to help people get started with [BCC](https://github.com/iovisor/bcc).
 
-# Getting started
-## Prerequisite.
+## Getting started
+# Prerequisite.
 * Latest Linux kernel version. atlease 4.1 some of the features won't work 
 for more kernel version features read [this](https://github.com/iovisor/bcc/blob/master/docs/kernel-versions.md)
 * Install LLVM Clang devel packaes
 * other devel packaes as mentioned on [Install page](https://github.com/iovisor/bcc/blob/master/INSTALL.md)
 
 
-## Testing BCC.
+# Testing BCC.
 * get latest BCC source code
 ```bash
 dev@linux-1rjj:~/workspace/git> git clone https://github.com/iovisor/bcc
@@ -43,7 +43,7 @@ b'            bash-12890 [002] d... 37782.617203: 0: Hello, World!'
 b'            bash-12836 [003] d... 37782.618626: 0: Hello, World!'
 ```
 
-## What just happened?
+# What just happened?
 * take a look at `examples/hello_world.py`
 
 ```python
@@ -67,7 +67,10 @@ int bpf(int cmd, union bpf_attr *attr, unsigned int size);
 Don't worry even if you didn't understood above statements.
 
 Only understand this *********
-** this c code gets compiled in linux kernel **
+
+
+**this c code gets compiled in linux kernel**
+
 
 One in above example
 
@@ -81,7 +84,6 @@ to see this is true. try greping it in `/proc/kallsyms`.
 ``` bash
 dev@linux-1rjj:~> grep sys_clone /proc/kallsyms
 0000000000000000 T sys_clone
-
 ```
 
 these two parts are concatenated by `__`
