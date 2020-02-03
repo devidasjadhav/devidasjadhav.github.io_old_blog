@@ -1,0 +1,113 @@
+---
+layout: post
+title:  "BCC tutorial part 1(Hello World!)"
+date:  2020-02-03 22:00:03 +0530 
+categories: bcc
+---
+
+This is first post of series intended to help people get started with [BCC](https://github.com/iovisor/bcc).
+
+# Getting started
+## Prerequisite.
+* Latest Linux kernel version. atlease 4.1 some of the features won't work 
+for more kernel version features read [this](https://github.com/iovisor/bcc/blob/master/docs/kernel-versions.md)
+* Install LLVM Clang devel packaes
+* other devel packaes as mentioned on [Install page](https://github.com/iovisor/bcc/blob/master/INSTALL.md)
+
+
+## Testing BCC.
+* get latest BCC source code
+```bash
+dev@linux-1rjj:~/workspace/git> git clone https://github.com/iovisor/bcc
+Cloning into 'bcc'...
+remote: Enumerating objects: 1, done.
+remote: Counting objects: 100% (1/1), done.
+remote: Total 19523 (delta 0), reused 0 (delta 0), pack-reused 19522
+Receiving objects: 100% (19523/19523), 9.51 MiB | 169.00 KiB/s, done.
+Resolving deltas: 100% (12775/12775), done.
+```
+
+
+* run `examples/hello_world.py` with superuser previlages.
+* open a new tab or run `ls` on other terminal.
+
+you should see something like
+
+
+```bash
+dev@linux-1rjj:~/workspace/git/bcc> sudo examples/hello_world.py 
+b'            bash-12836 [003] d... 37782.614694: 0: Hello, World!'
+b'            bash-12836 [003] d... 37782.616427: 0: Hello, World!'
+b'            bash-12889 [001] d... 37782.616831: 0: Hello, World!'
+b'            bash-12890 [002] d... 37782.617203: 0: Hello, World!'
+b'            bash-12836 [003] d... 37782.618626: 0: Hello, World!'
+```
+
+## What just happened?
+* take a look at `examples/hello_world.py`
+
+```python
+BPF(text='int kprobe__sys_clone(void *ctx)
+    { 
+      bpf_trace_printk("Hello, World!\\n"); 
+      return 0; 
+    }'
+  ).trace_print()
+```
+
+Any BCC program has two parts (mostly except you write c bcc program).
+
+1. bcc c code responsible to get data from linux kernel. 
+this code gets compiled by LLVM to bytecode tobe run on virtual machine.
+this gets pass to `bpf` system call. 
+```c
+int bpf(int cmd, union bpf_attr *attr, unsigned int size);
+```
+
+Don't worry even if you didn't understood above statements.
+
+Only understand this *********
+** this c code gets compiled in linux kernel **
+
+One in above example
+
+function `kprobe__sys_clone` with argument `void *ctx`
+
+name has two parts 
+i. `kprobe` this is prepended to kernel funxtion name you wish to attach your program.
+ii. `sys_clone` this is kernel function name(only exported functions can be used).
+to see this is true. try greping it in `/proc/kallsyms`.
+
+``` bash
+dev@linux-1rjj:~> grep sys_clone /proc/kallsyms
+0000000000000000 T sys_clone
+
+```
+
+these two parts are concatenated by `__`
+
+
+2. `bpf_trace_printk` is printing in trace buffer.
+although this is not recomended way as multiple bpf program can choke due to sharing same trace buffer.
+but as for getting started this will do.
+
+you can try playing with this function with different format specifier.
+
+for example very trivial example
+
+```python
+BPF(text='int kprobe__sys_clone(void *ctx)
+    { 
+      int i=0;
+      bpf_trace_printk("Hello, World! %d\\n",i); 
+      return 0; 
+    }'
+  ).trace_print()
+```
+
+2. next part is processing the output recieved from bpf program
+here we are using python file (we can use lua or even c or even golang. golang is bit tricky. its developed under different repository called [gobpf](https://github.com/iovisor/gobpf). gobpf is still in early developement).
+`trace_print` is python helper printing trace buffer output from this BPF program.
+
+This is very high level explanation.
+we will dive deep. in subsequent parts.
